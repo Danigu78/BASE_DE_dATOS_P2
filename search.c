@@ -23,11 +23,11 @@ void results_search(char *from, char *to,
     char dep[32], arr[32], acode[16], status[32];
     int i = 0;
 
-    /* 🔹 Estado inicial seguro */
+    /* Estado inicial seguro */
     *n_choices = 0;
     *choices = NULL;
 
-    /* 🔹 Validar parámetros de entrada */
+    /*  Validar parámetros de entrada */
     if (!from || !to || strlen(from) == 0 || strlen(to) == 0) {
         *choices = malloc(sizeof(char *));
         if (!*choices) return;

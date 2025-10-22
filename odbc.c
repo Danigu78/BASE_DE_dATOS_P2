@@ -1,0 +1,93 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <sql.h>
+#include <sqlext.h>
+#include "odbc.h"
+
+/* Tu macro de conexión */
+#define CONNECTION_PARS "DRIVER=PostgreSQL ANSI;DATABASE=flight;SERVER=localhost;PORT=5432;UID=alumnodb;PWD=alumnodb;"
+
+/* REPORT OF THE MOST RECENT ERROR USING HANDLE handle */
+void odbc_extract_error(char *fn, SQLHANDLE handle, SQLSMALLINT type) {
+    SQLINTEGER i = 0;
+    SQLINTEGER native;
+    SQLCHAR state[7];
+    SQLCHAR text[256];
+    SQLSMALLINT len;
+    SQLRETURN ret;
+
+    fprintf(stderr, "\nThe driver reported the following diagnostics while running %s\n\n", fn);
+
+    do {
+        ret = SQLGetDiagRec(type, handle, ++i, state, &native, text, sizeof(text), &len);
+        if (SQL_SUCCEEDED(ret)) {
+            printf("%s:%d:%d:%s\n", state, i, native, text);
+        }
+    } while(ret == SQL_SUCCESS);
+}
+
+/* STANDARD CONNECTION PROCEDURE */
+int odbc_connect(SQLHENV* env, SQLHDBC* dbc) {
+    SQLRETURN ret;
+
+    /* Allocate an environment handle */
+    ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, env);
+    if (!SQL_SUCCEEDED(ret)) {
+        fprintf(stderr, "Error al crear el environment handle\n");
+        return ret;
+    }
+
+    /* We want ODBC 3 support */
+    ret = SQLSetEnvAttr(*env, SQL_ATTR_ODBC_VERSION, (void *) SQL_OV_ODBC3, 0);
+    if (!SQL_SUCCEEDED(ret)) {
+        fprintf(stderr, "Error al establecer ODBC version\n");
+        return ret;
+    }
+
+    /* Allocate a connection handle */
+    ret = SQLAllocHandle(SQL_HANDLE_DBC, *env, dbc);
+    if (!SQL_SUCCEEDED(ret)) {
+        fprintf(stderr, "Error al crear el connection handle\n");
+        return ret;
+    }
+
+    /* 🔹 Conexión usando tu CONNECTION_PARS 🔹 */
+    ret = SQLDriverConnect(*dbc, NULL, (SQLCHAR*)CONNECTION_PARS, SQL_NTS, NULL, 0, NULL, SQL_DRIVER_COMPLETE);
+    if (!SQL_SUCCEEDED(ret)) {
+        fprintf(stderr, "No se pudo conectar a la base de datos\n");
+        odbc_extract_error("SQLDriverConnect", *dbc, SQL_HANDLE_DBC);
+        return ret;
+    }
+
+    /* Conexión exitosa */
+    printf("Conexión a la base de datos exitosa.\n");
+    return ret;
+}
+
+/* STANDARD DISCONNECTION PROCEDURE */
+int odbc_disconnect(SQLHENV env, SQLHDBC dbc) {
+    SQLRETURN ret;
+
+    /* Disconnect from database */
+    ret = SQLDisconnect(dbc);
+    if (!SQL_SUCCEEDED(ret)) {
+        odbc_extract_error("SQLDisconnect", dbc, SQL_HANDLE_DBC);
+        return ret;
+    }
+
+    /* Free connection handle */
+    ret = SQLFreeHandle(SQL_HANDLE_DBC, dbc);
+    if (!SQL_SUCCEEDED(ret)) {
+        odbc_extract_error("SQLFreeHandle DBC", dbc, SQL_HANDLE_DBC);
+        return ret;
+    }
+
+    /* Free environment handle */
+    ret = SQLFreeHandle(SQL_HANDLE_ENV, env);
+    if (!SQL_SUCCEEDED(ret)) {
+        odbc_extract_error("SQLFreeHandle ENV", env, SQL_HANDLE_ENV);
+        return ret;
+    }
+
+    return ret;
+}

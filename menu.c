@@ -181,9 +181,15 @@ The leaks you should worry about are the “unreachable” leaks because they in
         free_field(forms.bpass_form_items[i]);
     free(forms.choices_bpass_form);
     free(forms.bpass_form_items);
+    if (menus.out_win_choices == NULL) {
+   
+    return;
+}
+    for (i = 0; i < windows.rows_out_win; i++){
+        if (menus.out_win_choices[i] == NULL)
+    printf("Elemento %d es NULL\n", i);
 
-    for (i = 0; i < windows.rows_out_win; i++)
-        free(menus.out_win_choices[i]);
+    free(menus.out_win_choices[i]);}
     free(menus.out_win_choices);
 
     /*free panels */

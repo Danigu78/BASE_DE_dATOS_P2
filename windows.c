@@ -160,8 +160,9 @@ static void create_out(_Windows *windows, _Menus *menu)
             (char **) calloc(windows->rows_out_win, sizeof(char *));
 
     for (i = 0; i < windows->rows_out_win; i++)
-        (menu->out_win_choices)[i] =
-                (char *) calloc(windows->cols_out_win, sizeof(char *));
+     (menu->out_win_choices)[i] =
+        (char *) calloc(windows->cols_out_win, sizeof(char *));
+
 }
 
 static void create_msg(_Windows *windows)
@@ -296,7 +297,7 @@ void print_out(WINDOW *win,
         if (highlight == i) /* High light the present choice  */
         {
             (void) wattron(win, A_REVERSE);  /** set reverse attribute on */
-            (void) mvwprintw(win, y, x, "%s", choices[i]);
+            (void) mvwprintw(win, y, x, "%s holaaaa", choices[i]);
             (void) wattroff(win, A_REVERSE); /** set reverse attribute off */
         } else
             (void) mvwprintw(win, y, x, "%s", choices[i]);
